@@ -1,0 +1,459 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Credit Simulator API",
+    "version": "1.0.0",
+    "description": "API para simulação e consulta de operações de crédito",
+    "contact": {
+      "name": "Equipe de Desenvolvimento",
+      "email": "suporte@empresa.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Ambiente local"
+    }
+  ],
+  "paths": {
+    "/v1/credit/simulation": {
+      "post": {
+        "summary": "Simular operação de crédito única",
+        "description": "Realiza uma simulação individual de crédito",
+        "operationId": "simulateSingleCredit",
+        "requestBody": {
+          "description": "Dados para simulação única",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationRequest"
+              },
+              "examples": {
+                "basic": {
+                  "value": {
+                    "birthdate": "1985-05-15",
+                    "loanAmount": {
+                      "value": 1500000,
+                      "currency": "BRL"
+                    },
+                    "amountOfMonths": 24
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simulação realizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "birthdate": "1985-05-15",
+                      "amountOfMonths": 24,
+                      "loanAmount": {
+                        "value": 1500000,
+                        "currency": "BRL"
+                      },
+                      "totalAmount": {
+                        "value": 1741200,
+                        "currency": "BRL"
+                      },
+                      "monthlyPayment": {
+                        "value": 72550,
+                        "currency": "BRL"
+                      },
+                      "totalInterest": {
+                        "value": 241200,
+                        "currency": "BRL"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/credit/simulation/batch": {
+      "post": {
+        "summary": "Simular operações de crédito em lote",
+        "description": "Realiza múltiplas simulações de crédito em uma única requisição",
+        "operationId": "simulateCreditInBatch",
+        "requestBody": {
+          "description": "Dados para simulação em lote",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateCreditInBatchRequest"
+              },
+              "examples": {
+                "basic": {
+                  "value": {
+                    "batch": [
+                      {
+                        "birthdate": "1985-05-15",
+                        "loanAmount": {
+                          "value": 1500000,
+                          "currency": "BRL"
+                        },
+                        "amountOfMonths": 24
+                      },
+                      {
+                        "birthdate": "1990-11-20",
+                        "loanAmount": {
+                          "value": 2500000,
+                          "currency": "BRL"
+                        },
+                        "amountOfMonths": 36
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simulação em lote realizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulateCreditInBatchResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "requestId": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/credit/simulation/{requestId}": {
+      "get": {
+        "summary": "Consultar simulações por ID de requisição",
+        "description": "Recupera simulações associadas a um ID de lote específico com paginação",
+        "operationId": "findByRequestId",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "Deslocamento para paginação"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 5
+            },
+            "description": "Limite de resultados por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Simulações encontradas com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationsByRequestIdProjection"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "simulations": [
+                        {
+                          "birthdate": "1985-05-15",
+                          "amountOfMonths": 24,
+                          "loanAmount": {
+                            "amount": 15000.00,
+                            "currency": "BRL"
+                          },
+                          "totalAmount": {
+                            "amount": 17412.00,
+                            "currency": "BRL"
+                          },
+                          "monthlyPayment": {
+                            "amount": 725.50,
+                            "currency": "BRL"
+                          },
+                          "totalInterest": {
+                            "amount": 2412.00,
+                            "currency": "BRL"
+                          },
+                          "createdAt": 1692091200
+                        }
+                      ],
+                      "totalPages": 1,
+                      "totalItems": 1,
+                      "offset": 0,
+                      "limit": 5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nenhuma simulação encontrada para o ID de requisição"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SimulationRequest": {
+        "type": "object",
+        "required": ["birthdate", "loanAmount", "amountOfMonths"],
+        "properties": {
+          "birthdate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de nascimento do cliente (ISO 8601)",
+            "example": "1985-05-15"
+          },
+          "loanAmount": {
+            "$ref": "#/components/schemas/MonetaryValue"
+          },
+          "amountOfMonths": {
+            "type": "integer",
+            "minimum": 6,
+            "maximum": 48,
+            "description": "Quantidade de meses para pagamento",
+            "example": 24
+          }
+        }
+      },
+      "SimulationResponse": {
+        "type": "object",
+        "required": ["amountOfMonths", "loanAmount", "totalAmount", "monthlyPayment", "totalInterest"],
+        "properties": {
+          "birthdate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Data de nascimento do cliente",
+            "example": "1985-05-15"
+          },
+          "amountOfMonths": {
+            "type": "integer",
+            "description": "Quantidade de meses para pagamento",
+            "example": 24
+          },
+          "loanAmount": {
+            "$ref": "#/components/schemas/MonetaryValue"
+          },
+          "totalAmount": {
+            "$ref": "#/components/schemas/MonetaryValue"
+          },
+          "monthlyPayment": {
+            "$ref": "#/components/schemas/MonetaryValue"
+          },
+          "totalInterest": {
+            "$ref": "#/components/schemas/MonetaryValue"
+          }
+        }
+      },
+      "SimulateCreditInBatchRequest": {
+        "type": "object",
+        "required": ["batch"],
+        "properties": {
+          "batch": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SimulationRequest"
+            },
+            "description": "Lista de simulações a serem processadas"
+          }
+        }
+      },
+      "SimulateCreditInBatchResponse": {
+        "type": "object",
+        "required": ["requestId"],
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do lote de simulações",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        }
+      },
+      "SimulationsByRequestIdProjection": {
+        "type": "object",
+        "required": ["simulations", "totalPages", "totalItems", "offset", "limit"],
+        "properties": {
+          "simulations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SimulationResult"
+            },
+            "description": "Lista de simulações encontradas"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total de páginas",
+            "example": 1
+          },
+          "totalItems": {
+            "type": "integer",
+            "description": "Total de itens",
+            "example": 2
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Deslocamento atual",
+            "example": 0
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Limite de resultados por página",
+            "example": 5
+          }
+        }
+      },
+      "SimulationResult": {
+        "type": "object",
+        "required": ["birthdate", "amountOfMonths", "loanAmount", "totalAmount", "monthlyPayment", "totalInterest", "createdAt"],
+        "properties": {
+          "birthdate": {
+            "type": "string",
+            "description": "Data de nascimento do cliente",
+            "example": "1985-05-15"
+          },
+          "amountOfMonths": {
+            "type": "integer",
+            "description": "Quantidade de meses para pagamento",
+            "example": 24
+          },
+          "loanAmount": {
+            "$ref": "#/components/schemas/ProjectionMonetaryValue"
+          },
+          "totalAmount": {
+            "$ref": "#/components/schemas/ProjectionMonetaryValue"
+          },
+          "monthlyPayment": {
+            "$ref": "#/components/schemas/ProjectionMonetaryValue"
+          },
+          "totalInterest": {
+            "$ref": "#/components/schemas/ProjectionMonetaryValue"
+          },
+          "createdAt": {
+            "type": "integer",
+            "description": "Timestamp de criação (epoch seconds)",
+            "example": 1692091200
+          }
+        }
+      },
+      "MonetaryValue": {
+        "type": "object",
+        "required": ["value", "currency"],
+        "properties": {
+          "value": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Valor em centavos (ou menor unidade da moeda)",
+            "example": 1500000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Código da moeda (ISO 4217)",
+            "example": "BRL"
+          }
+        }
+      },
+      "ProjectionMonetaryValue": {
+        "type": "object",
+        "required": ["amount", "currency"],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "Valor monetário",
+            "example": 15000.00
+          },
+          "currency": {
+            "type": "string",
+            "description": "Código da moeda (ISO 4217)",
+            "example": "BRL"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora do erro"
+          },
+          "status": {
+            "type": "integer",
+            "description": "Código HTTP de erro"
+          },
+          "error": {
+            "type": "string",
+            "description": "Tipo do erro"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem descritiva do erro"
+          },
+          "path": {
+            "type": "string",
+            "description": "Caminho da requisição que causou o erro"
+          }
+        }
+      }
+    }
+  }
+}

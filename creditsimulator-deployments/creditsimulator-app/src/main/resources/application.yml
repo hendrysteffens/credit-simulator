@@ -1,0 +1,66 @@
+springdoc:
+  swagger-ui.url: /openapi.json
+spring:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  application:
+    name: creditsimulator-app
+  main:
+    banner-mode: log
+    web-application-type: REACTIVE
+  web:
+    resources:
+      add-mappings: false
+  r2dbc:
+    name: credit
+    url: r2dbc:postgresql://localhost:5432/credit?currentSchema=public
+    username: ${SPRING_R2DBC_USERNAME:admin}
+    password: ${SPRING_R2DBC_PASSWORD:admin}
+    properties:
+      preparedStatementCacheQueries: 0
+    pool:
+      max-life-time: 5m
+      max-idle-time: 5m
+      max-acquire-time: 5s
+      max-validation-time: 5s
+      max-create-connection-time: 5s
+      min-idle: 5
+      initial-size: 5
+      max-size: 10
+      validation-query: DO $$ BEGIN IF pg_is_in_recovery() then RAISE exception 'Write operation is not available'; END IF; END $$;
+  http:
+    codecs:
+      max-in-memory-size: 10MB
+
+server:
+  port: 8080
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      base-path: /actuator/
+      exposure:
+        include: "*"
+    prometheus:
+      exposure:
+        include: "*"
+  health:
+    liveness-state:
+      enabled: true
+    readiness-state:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.javamoney.moneta: WARN
+  config: "classpath:${LOGGING_CONFIG_FILE:log4j2.xml}"
